@@ -10,12 +10,15 @@ const ShoppingHome = () => {
   const fetchShoppingData = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:3000/products", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await fetch(
+        "https://ecommerce-backend-five-chi.vercel.app/products",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!res.ok) {
         return "Failed to fetch the data";

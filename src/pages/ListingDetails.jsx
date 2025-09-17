@@ -14,12 +14,15 @@ const ListingDetails = () => {
 
   const fetchUsrMoreLike = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/productItems`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await fetch(
+        `https://ecommerce-backend-five-chi.vercel.app/productItems`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!res.ok) {
         return "Failed to fetch the data";
@@ -35,7 +38,7 @@ const ListingDetails = () => {
   const fetchUserDataDetail = async () => {
     try {
       const res = await fetch(
-        `http://localhost:3000/products/details/${productId}`,
+        `https://ecommerce-backend-five-chi.vercel.app/products/details/${productId}`,
         {
           method: "GET",
           headers: {

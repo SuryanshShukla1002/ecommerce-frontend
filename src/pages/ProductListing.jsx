@@ -33,7 +33,7 @@ const ProductListing = () => {
     try {
       setLoading(true);
       const res = await fetch(
-        `http://localhost:3000/products/${categoryName}`,
+        `https://ecommerce-backend-five-chi.vercel.app/products/${categoryName}`,
         {
           method: "GET",
           headers: {
