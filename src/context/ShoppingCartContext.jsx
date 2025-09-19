@@ -21,8 +21,17 @@ export const ShoppingContextProvider = ({ children }) => {
 
   const [address, setAddress] = useState(() => {
     const storedAddress = localStorage.getItem("userAddress");
-    return storedAddress ? storedAddress : ""; 
+    return storedAddress ? storedAddress : "";
   });
+
+  const [checkoutPage, setCheckoutPage] = useState(() => {
+    const storedOrderSummary = localStorage.getItem("checkoutPage");
+    return storedOrderSummary ? JSON.parse(storedOrderSummary) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("checkoutPage", JSON.stringify(checkoutPage));
+  }, [checkoutPage]);
 
   useEffect(() => {
     localStorage.setItem("userAddress", address);
@@ -63,12 +72,25 @@ export const ShoppingContextProvider = ({ children }) => {
     );
   };
 
+  const checkOutPageAddress = (order) => {
+    setCheckoutPage((prev) => [...prev, order]);
+  };
+
+  const removeOrder = (order) => {
+    setCheckoutPage((prev) =>
+      prev.filter(
+        (cancel) => cancel._id !== order._id && cancel.id !== order.id
+      )
+    );
+  };
+
   return (
     <ShoppingCartContext.Provider
       value={{
         savedProducts,
         wislist,
         searchTerm,
+        checkoutPage,
         setSearchTerm,
         filterByName,
         addToCart,
@@ -77,6 +99,8 @@ export const ShoppingContextProvider = ({ children }) => {
         removeWishListCard,
         address,
         UpdateAddress,
+        checkOutPageAddress,
+        removeOrder,
       }}
     >
       {children}
