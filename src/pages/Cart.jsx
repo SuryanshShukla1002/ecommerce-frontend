@@ -1,13 +1,17 @@
 import { useState } from "react";
 import useShoppingCartContext from "../context/ShoppingCartContext";
+import { Link } from "react-router-dom";
 
 const Cart = () => {
-  const { savedProducts, removeCart, MoveToWishlist } =
+  const { savedProducts, removeCart, MoveToWishlist, checkOutPageAddress } =
     useShoppingCartContext();
+
   const [quantity, setQuantity] = useState(0);
   const [wishListAdded, setWishListAdded] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [messageId, setMessageId] = useState(null);
+  const [addressInput, setAddressInput] = useState(""); // new state for address
+
   let discount = 300;
   let deliveryCharges = 499;
 
@@ -66,28 +70,6 @@ const Cart = () => {
                               </span>
                             </p>
                             <p className="text-secondary mb-0">50% off</p>
-                            {/* <p>
-                              <b>
-                                Quantity:{" "}
-                                <span
-                                  className="btn btn-danger"
-                                  onClick={() =>
-                                    setQuantity((count) => count - 1)
-                                  }
-                                >
-                                  -
-                                </span>{" "}
-                                ({quantity}){" "}
-                                <span
-                                  className="btn btn-danger"
-                                  onClick={() =>
-                                    setQuantity((count) => count + 1)
-                                  }
-                                >
-                                  +
-                                </span>
-                              </b>
-                            </p> */}
                             <button
                               className="btn btn-secondary px-1 w-100 mb-2"
                               onClick={() => removeCart(cart)}
@@ -107,7 +89,7 @@ const Cart = () => {
                             >
                               {messageId === cart._id
                                 ? "SuccessFully added"
-                                : "Movie to wishlist"}
+                                : "Move to wishlist"}
                             </button>
                           </div>
                         </div>
@@ -119,63 +101,84 @@ const Cart = () => {
             </div>
 
             {savedProducts.length > 0 && (
-              <>
-                <div className="col-md-4">
-                  <div className="card">
-                    <div className="card-body">
-                      <h5 className="card-title">Price Details</h5>
-                      <hr />
-                      <p className="d-flex justify-content-between">
-                        Price
-                        <span>
+              <div className="col-md-4">
+                <div className="card">
+                  <div className="card-body">
+                    <h5 className="card-title">Price Details</h5>
+                    <hr />
+                    <p className="d-flex justify-content-between">
+                      Price
+                      <span>
+                        ₹
+                        {savedProducts.reduce(
+                          (acc, item) => acc + item.price,
+                          0
+                        )}
+                      </span>
+                    </p>
+                    <p className="d-flex justify-content-between">
+                      Discount<span>-₹{discount}</span>
+                    </p>
+                    <p className="d-flex justify-content-between">
+                      Delivery Charges <span>₹{deliveryCharges}</span>
+                    </p>
+                    <hr />
+                    <p className="d-flex justify-content-between">
+                      <b>TOTAL AMOUNT </b>
+                      <span>
+                        <b>
                           ₹
                           {savedProducts.reduce(
                             (acc, item) => acc + item.price,
                             0
-                          )}
-                        </span>
-                      </p>
-                      <p className="d-flex justify-content-between">
-                        Discount<span>-₹{discount}</span>
-                      </p>
-                      <p className="d-flex justify-content-between">
-                        Delivery Charges <span>₹{deliveryCharges}</span>
-                      </p>
-                      <hr />
-                      <p className="d-flex justify-content-between">
-                        <b>TOTAL AMOUNT </b>
-                        <span>
-                          <b>
-                            ₹
-                            {savedProducts.reduce(
-                              (acc, item) => acc + item.price,
-                              0
-                            ) -
-                              discount +
-                              deliveryCharges}
-                          </b>
-                        </span>
-                      </p>
-                      <hr />
-                      <p>You will save ₹{discount} on this order</p>
-                      <button
-                        className="btn btn-primary px-1 w-100 mb-2"
-                        onClick={() => {
-                          setOrderPlaced(true);
-                          setTimeout(() => {
-                            setOrderPlaced(false);
-                          }, 2000);
-                        }}
-                      >
-                        PLACE ORDER
-                      </button>
-                      <p className="text-success">
-                        {orderPlaced && "Ordered Placed Successfully"}
-                      </p>
-                    </div>
+                          ) -
+                            discount +
+                            deliveryCharges}
+                        </b>
+                      </span>
+                    </p>
+                    <hr />
+                    <p>You will save ₹{discount} on this order</p>
+                    <button
+                      className="btn btn-primary px-1 w-100 mb-2"
+                      onClick={() => {
+                        setOrderPlaced(true);
+                      }}
+                    >
+                      PLACE ORDER
+                    </button>
+                    {orderPlaced && (
+                      <>
+                        <label htmlFor="addressInput">Enter the address:</label>
+                        <br />
+                        <textarea
+                          className="w-100"
+                          rows={3}
+                          value={addressInput}
+                          onChange={(e) => setAddressInput(e.target.value)}
+                        />
+                        <br />
+                        <Link to="/checkout">
+                          <button
+                            className="btn btn-success mt-2"
+                            onClick={() => {
+                              const orderWithAddress = savedProducts.map(
+                                (item) => ({
+                                  ...item,
+                                  address: addressInput,
+                                })
+                              );
+                              checkOutPageAddress(orderWithAddress);
+                            }}
+                          >
+                            Confirm address
+                          </button>
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
