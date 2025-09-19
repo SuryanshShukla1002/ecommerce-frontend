@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import useShoppingCartContext from "../context/ShoppingCartContext";
 
 const Navbar = () => {
-  const { searchTerm, setSearchTerm } = useShoppingCartContext();
+  const { searchTerm, setSearchTerm, savedProducts, wislist } =
+    useShoppingCartContext();
   return (
     <nav className="navbar navbar-expand-lg bg-white shadow-sm">
       <div className="container">
@@ -51,7 +52,7 @@ const Navbar = () => {
                     objectFit: "contain",
                   }}
                 />
-                WishList
+                WishList ({wislist.length})
               </Link>
             </li>
             <li className="nav-item">
@@ -66,7 +67,7 @@ const Navbar = () => {
                     objectFit: "contain",
                   }}
                 />
-                Cart
+                Cart ({savedProducts.length})
               </Link>
             </li>
             <li className="nav-item">

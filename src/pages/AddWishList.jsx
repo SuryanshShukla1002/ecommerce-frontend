@@ -4,7 +4,7 @@ import useShoppingCartContext from "../context/ShoppingCartContext";
 const AddWishList = () => {
   const { wislist, removeWishListCard } = useShoppingCartContext();
 
-  console.log(wislist);
+  // console.log(wislist);
 
   return (
     <>
