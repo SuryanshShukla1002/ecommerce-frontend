@@ -9,6 +9,7 @@ import AddWishList from "./pages/AddWishList";
 import Cart from "./pages/Cart";
 import { ShoppingContextProvider } from "./context/ShoppingCartContext";
 import Profile from "./pages/Profile";
+import Checkout from "./pages/Checkout";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/wishList" element={<AddWishList />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/checkout" element={<Checkout />} />
         </Routes>
       </ShoppingContextProvider>
     </>
