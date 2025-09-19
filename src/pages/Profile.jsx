@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useShoppingCartContext from "../context/ShoppingCartContext";
+import { Link } from "react-router-dom";
 
 const Profile = () => {
   const { address, UpdateAddress } = useShoppingCartContext();
@@ -53,9 +54,15 @@ const Profile = () => {
             </li>
           </ul>
           <div className="card-body text-center">
-            <button className="btn btn-primary" onClick={handleAddressUpdate}>
+            <button
+              className="btn btn-primary w-100 mb-1"
+              onClick={handleAddressUpdate}
+            >
               Update Address
             </button>
+            <Link to="/checkout">
+              <button className="btn btn-info w-100">View Orders</button>
+            </Link>
           </div>
         </div>
       </div>
