@@ -192,7 +192,7 @@ const ProductListing = () => {
               checked={primiumCheck}
               onChange={handleChangeForPremium}
             />{" "}
-            Primium
+            Premium
           </label>
           <br />
           <br />
