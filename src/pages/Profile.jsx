@@ -1,68 +1,61 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useShoppingCartContext from "../context/ShoppingCartContext";
-import { Link } from "react-router-dom";
 
 const Profile = () => {
-  const { address, UpdateAddress } = useShoppingCartContext();
-  const [changeAdress, setChangeAdress] = useState(address);
+  const { addresses, addAddress, updateAddress, deleteAddress } =
+    useShoppingCartContext();
+  const [newAddress, setNewAddress] = useState("");
 
-  useEffect(() => {
-    setChangeAdress(address);
-  }, [address]);
-
-  const handleAddressUpdate = () => {
-    UpdateAddress(changeAdress);
-    alert("Address updated!");
+  const handleAddAddress = () => {
+    if (newAddress.trim()) {
+      addAddress(newAddress);
+      setNewAddress("");
+    }
   };
 
   return (
     <main className="container">
       <div className="text-center">
-        <h1>User Profile</h1>
+        <h1 className="mt-4">User Profile</h1>
       </div>
-      <div className="d-flex justify-content-center">
-        <div className="card mt-2" style={{ width: "22rem" }}>
-          <img
-            src="https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-image-182145777.jpg"
-            className="card-img-top"
-            alt="User_Photo"
-          />
-          <div className="card-body">
-            <h5 className="card-title">Suryansh Shukla</h5>
-            <p className="card-text">
-              Full-Stack Web Developer | Expertise in MERN Stack & Modern
-              Frameworks | Turning Ideas Into Interactive & Scalable Web
-              Solutions.
-            </p>
-          </div>
-          <ul className="list-group list-group-flush">
-            <li className="list-group-item">
-              <strong>Email:</strong> suryansh@example.com
-            </li>
-            <li className="list-group-item">
-              <strong>Phone:</strong> +91 xxxxx xxxxx
-            </li>
-            <li className="list-group-item">
-              <strong>Address:</strong>
-              <br />
+
+      <div className="card mt-3 w-100">
+        <div className="card-body">
+          <h5 className="card-title">Suryansh Shukla</h5>
+          <p className="card-text">
+            Full-Stack Web Developer | Expertise in MERN Stack & Modern
+            Frameworks
+          </p>
+
+          <h4>My Addresses</h4>
+          {addresses.map((addr, index) => (
+            <div key={index} className="d-flex mb-2">
               <textarea
-                className="w-100"
-                value={changeAdress}
+                className="form-control me-2"
+                value={addr}
                 rows={2}
-                onChange={(e) => setChangeAdress(e.target.value)}
+                onChange={(e) => updateAddress(index, e.target.value)}
               />
-            </li>
-          </ul>
-          <div className="card-body text-center">
-            <button
-              className="btn btn-primary w-100 mb-1"
-              onClick={handleAddressUpdate}
-            >
-              Update Address
+              <button
+                className="btn btn-danger"
+                onClick={() => deleteAddress(index)}
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+
+          <div className="d-flex mt-3">
+            <textarea
+              className="form-control me-2"
+              value={newAddress}
+              rows={2}
+              onChange={(e) => setNewAddress(e.target.value)}
+              placeholder="Add new address"
+            />
+            <button className="btn btn-primary" onClick={handleAddAddress}>
+              Add Address
             </button>
-            <Link to="/checkout">
-              <button className="btn btn-info w-100">View Orders</button>
-            </Link>
           </div>
         </div>
       </div>
