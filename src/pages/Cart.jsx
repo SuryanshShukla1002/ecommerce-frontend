@@ -1,22 +1,81 @@
 import { useState } from "react";
 import useShoppingCartContext from "../context/ShoppingCartContext";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
-  const { savedProducts, removeCart, MoveToWishlist, checkOutPageAddress } =
-    useShoppingCartContext();
+  const {
+    savedProducts,
+    removeCart,
+    MoveToWishlist,
+    checkOutPageAddress,
+    addresses,
+    addAddress,
+  } = useShoppingCartContext();
 
-  const [quantity, setQuantity] = useState(0);
   const [wishListAdded, setWishListAdded] = useState(false);
-  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderPopup, setOrderPopup] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState("");
+  const [newAddress, setNewAddress] = useState("");
   const [messageId, setMessageId] = useState(null);
-  const [addressInput, setAddressInput] = useState(""); // new state for address
+  const [toastMessage, setToastMessage] = useState("");
 
-  let discount = 300;
-  let deliveryCharges = 499;
+  const navigate = useNavigate();
+
+  const discount = 300;
+  const deliveryCharges = 499;
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(""), 3000);
+  };
+
+  const handlePlaceOrder = () => {
+    if (!selectedAddress && !newAddress) {
+      showToast("Please select or enter an address");
+      return;
+    }
+
+    const finalAddress = selectedAddress || newAddress;
+
+    if (newAddress) addAddress(newAddress);
+
+    const orderWithAddress = savedProducts.map((item) => ({
+      ...item,
+      address: finalAddress,
+    }));
+
+    checkOutPageAddress(orderWithAddress);
+
+    // Empty the cart
+    savedProducts.forEach((item) => removeCart(item));
+
+    showToast("Order placed successfully!");
+    setOrderPopup(false);
+
+    // Navigate to checkout page
+    navigate("/checkout");
+  };
 
   return (
     <main className="bg-body-tertiary" style={{ minHeight: "100vh" }}>
+      {toastMessage && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            backgroundColor: "#28a745",
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: "8px",
+            zIndex: 9999,
+            boxShadow: "0px 2px 6px rgba(0,0,0,0.3)",
+          }}
+        >
+          {toastMessage}
+        </div>
+      )}
+
       <section className="py-4">
         <div className="container">
           <p className="text-center">
@@ -70,6 +129,7 @@ const Cart = () => {
                               </span>
                             </p>
                             <p className="text-secondary mb-0">50% off</p>
+
                             <button
                               className="btn btn-secondary px-1 w-100 mb-2"
                               onClick={() => removeCart(cart)}
@@ -82,9 +142,7 @@ const Cart = () => {
                                 MoveToWishlist(cart);
                                 setWishListAdded(true);
                                 setMessageId(cart._id);
-                                setTimeout(() => {
-                                  setMessageId(false);
-                                }, 2000);
+                                setTimeout(() => setMessageId(false), 2000);
                               }}
                             >
                               {messageId === cart._id
@@ -139,42 +197,81 @@ const Cart = () => {
                     </p>
                     <hr />
                     <p>You will save ₹{discount} on this order</p>
+
                     <button
                       className="btn btn-primary px-1 w-100 mb-2"
-                      onClick={() => {
-                        setOrderPlaced(true);
-                      }}
+                      onClick={() => setOrderPopup(true)}
                     >
                       PLACE ORDER
                     </button>
-                    {orderPlaced && (
-                      <>
-                        <label htmlFor="addressInput">Enter the address:</label>
-                        <br />
-                        <textarea
-                          className="w-100"
-                          rows={3}
-                          value={addressInput}
-                          onChange={(e) => setAddressInput(e.target.value)}
-                        />
-                        <br />
-                        <Link to="/checkout">
-                          <button
-                            className="btn btn-success mt-2"
-                            onClick={() => {
-                              const orderWithAddress = savedProducts.map(
-                                (item) => ({
-                                  ...item,
-                                  address: addressInput,
-                                })
-                              );
-                              checkOutPageAddress(orderWithAddress);
-                            }}
-                          >
-                            Confirm address
-                          </button>
-                        </Link>
-                      </>
+
+                    {orderPopup && (
+                      <div
+                        style={{
+                          position: "fixed",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          backgroundColor: "rgba(0,0,0,0.5)",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          zIndex: 9999,
+                        }}
+                      >
+                        <div
+                          className="card p-3"
+                          style={{
+                            width: "400px",
+                            maxHeight: "80vh",
+                            overflowY: "auto",
+                          }}
+                        >
+                          <h5>Select Address</h5>
+
+                          {addresses.length > 0 &&
+                            addresses.map((addr, i) => (
+                              <div key={i} className="form-check mb-2">
+                                <input
+                                  type="radio"
+                                  className="form-check-input"
+                                  name="address"
+                                  value={addr}
+                                  onChange={() => setSelectedAddress(addr)}
+                                />
+                                <label className="form-check-label">
+                                  {addr}
+                                </label>
+                              </div>
+                            ))}
+
+                          <div className="mt-2">
+                            <label>Or add new address:</label>
+                            <textarea
+                              className="form-control"
+                              rows={3}
+                              value={newAddress}
+                              onChange={(e) => setNewAddress(e.target.value)}
+                            />
+                          </div>
+
+                          <div className="mt-3 d-flex justify-content-between">
+                            <button
+                              className="btn btn-secondary"
+                              onClick={() => setOrderPopup(false)}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="btn btn-success"
+                              onClick={handlePlaceOrder}
+                            >
+                              Confirm Order
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
