@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 const ShoppingCartContext = createContext();
-
 const useShoppingCartContext = () => useContext(ShoppingCartContext);
 
 export default useShoppingCartContext;
@@ -19,9 +18,9 @@ export const ShoppingContextProvider = ({ children }) => {
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [address, setAddress] = useState(() => {
-    const storedAddress = localStorage.getItem("userAddress");
-    return storedAddress ? storedAddress : "";
+  const [addresses, setAddresses] = useState(() => {
+    const storedAddresses = localStorage.getItem("userAddresses");
+    return storedAddresses ? JSON.parse(storedAddresses) : [];
   });
 
   const [checkoutPage, setCheckoutPage] = useState(() => {
@@ -34,8 +33,8 @@ export const ShoppingContextProvider = ({ children }) => {
   }, [checkoutPage]);
 
   useEffect(() => {
-    localStorage.setItem("userAddress", address);
-  }, [address]);
+    localStorage.setItem("userAddresses", JSON.stringify(addresses));
+  }, [addresses]);
 
   useEffect(() => {
     localStorage.setItem("savedProducts", JSON.stringify(savedProducts));
@@ -45,12 +44,40 @@ export const ShoppingContextProvider = ({ children }) => {
     localStorage.setItem("wislist", JSON.stringify(wislist));
   }, [wislist]);
 
+  // UPDATED addToCart
   const addToCart = (product) => {
-    setSavedProducts((prev) => [...prev, product]);
+    setSavedProducts((prev) => {
+      const existingIndex = prev.findIndex(
+        (item) =>
+          item._id === product._id &&
+          (item.size ? item.size === product.size : true)
+      );
+
+      if (existingIndex !== -1) {
+        const updatedProducts = [...prev];
+        updatedProducts[existingIndex] = {
+          ...updatedProducts[existingIndex],
+          quantity:
+            (updatedProducts[existingIndex].quantity || 1) + product.quantity,
+          price: (updatedProducts[existingIndex].price || 0) + product.price,
+        };
+        return updatedProducts;
+      } else {
+        return [...prev, product];
+      }
+    });
   };
 
   const removeCart = (product) => {
-    setSavedProducts((prev) => prev.filter((cut) => cut !== product));
+    setSavedProducts((prev) =>
+      prev.filter(
+        (item) =>
+          !(
+            item._id === product._id &&
+            (item.size ? item.size === product.size : true)
+          )
+      )
+    );
   };
 
   const MoveToWishlist = (product) => {
@@ -61,8 +88,18 @@ export const ShoppingContextProvider = ({ children }) => {
     setWislist((prev) => prev.filter((remove) => remove !== cartName));
   };
 
-  const UpdateAddress = (newAddress) => {
-    setAddress(newAddress);
+  const addAddress = (newAddress) => {
+    setAddresses((prev) => [...prev, newAddress]);
+  };
+
+  const updateAddress = (index, updatedAddress) => {
+    setAddresses((prev) =>
+      prev.map((addr, i) => (i === index ? updatedAddress : addr))
+    );
+  };
+
+  const deleteAddress = (index) => {
+    setAddresses((prev) => prev.filter((_, i) => i !== index));
   };
 
   const filterByName = (array) => {
@@ -91,14 +128,16 @@ export const ShoppingContextProvider = ({ children }) => {
         wislist,
         searchTerm,
         checkoutPage,
+        addresses,
+        updateAddress,
+        deleteAddress,
+        addAddress,
         setSearchTerm,
         filterByName,
         addToCart,
         removeCart,
         MoveToWishlist,
         removeWishListCard,
-        address,
-        UpdateAddress,
         checkOutPageAddress,
         removeOrder,
       }}
