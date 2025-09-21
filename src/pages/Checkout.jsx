@@ -8,13 +8,18 @@ const Checkout = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  const handlePlaceOrder = (order) => {
-    setToastMessage(`Order placed successfully! Order ID: ${order._id}`);
+  const handleAction = (order, action) => {
+    const msg =
+      action === "place"
+        ? `Order placed successfully! Order ID: ${order._id || order.id}`
+        : `Order cancelled! Order ID: ${order._id || order.id}`;
+
+    setToastMessage(msg);
     setShowToast(true);
 
     setTimeout(() => {
       setShowToast(false);
-      removeOrder(order);
+      removeOrder(order); // remove order for both place & cancel
     }, 3000);
   };
 
@@ -31,7 +36,7 @@ const Checkout = () => {
                 <div className="card-body">
                   <h5 className="card-title">Order Name: {order.name}</h5>
                   <h6 className="card-subtitle mb-2 text-muted">
-                    Order ID: {order._id}
+                    Order ID: {order._id || order.id}
                   </h6>
                   <p className="card-text">
                     <strong>Price:</strong> ₹{order.price}
@@ -44,13 +49,13 @@ const Checkout = () => {
                   <div className="d-flex justify-content-between mt-3">
                     <button
                       className="btn btn-danger"
-                      onClick={() => removeOrder(order)}
+                      onClick={() => handleAction(order, "cancel")}
                     >
                       Cancel Order
                     </button>
                     <button
                       className="btn btn-success"
-                      onClick={() => handlePlaceOrder(order)}
+                      onClick={() => handleAction(order, "place")}
                     >
                       Place Order
                     </button>
@@ -66,26 +71,29 @@ const Checkout = () => {
         )}
       </section>
 
-      <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 11 }}>
+      {showToast && (
         <div
-          className={`toast align-items-center text-bg-success border-0 ${
-            showToast ? "show" : "hide"
-          }`}
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
+          className="position-fixed top-0 end-0 p-3"
+          style={{ zIndex: 9999 }}
         >
-          <div className="d-flex">
-            <div className="toast-body">{toastMessage}</div>
-            <button
-              type="button"
-              className="btn-close btn-close-white me-2 m-auto"
-              aria-label="Close"
-              onClick={() => setShowToast(false)}
-            ></button>
+          <div
+            className="toast align-items-center text-bg-success border-0 show"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <div className="d-flex">
+              <div className="toast-body">{toastMessage}</div>
+              <button
+                type="button"
+                className="btn-close btn-close-white me-2 m-auto"
+                aria-label="Close"
+                onClick={() => setShowToast(false)}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </main>
   );
 };
