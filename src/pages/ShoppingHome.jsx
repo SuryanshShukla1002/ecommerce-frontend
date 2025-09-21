@@ -25,7 +25,20 @@ const ShoppingHome = () => {
       }
 
       const data = await res.json();
-      setProducts(data);
+
+      // Replace categories
+      const updatedData = data.map((product) => {
+        if (product.category.toLowerCase().includes("mens casual shirt")) {
+          return { ...product, category: "Men" };
+        } else if (
+          product.category.toLowerCase().includes("women summer dress")
+        ) {
+          return { ...product, category: "Women" };
+        }
+        return product;
+      });
+
+      setProducts(updatedData);
       setLoading(false);
     } catch (err) {
       console.log(err);
@@ -42,67 +55,68 @@ const ShoppingHome = () => {
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  return (
-    <>
-      <section className="bg-body-tertiary">
-        <main className="container py-4">
-          {loading && (
-            <div
-              className="d-flex justify-content-center align-items-center"
-              style={{ minHeight: "200px" }}
-            >
-              <p className="text-center fs-5">
-                Product Categories are loading.....
-              </p>
-            </div>
-          )}
 
-          {!loading && (
-            <div className="row row-cols-1 row-cols-md-3 g-4">
-              {filteredProducts.map((product, index) => (
+  return (
+    <section className="bg-body-tertiary">
+      <main className="container py-4">
+        {loading && (
+          <div
+            className="d-flex justify-content-center align-items-center"
+            style={{ minHeight: "200px" }}
+          >
+            <p className="text-center fs-5">
+              Product Categories are loading...
+            </p>
+          </div>
+        )}
+
+        {!loading && (
+          <div className="row row-cols-1 row-cols-md-3 g-4">
+            {filteredProducts.map((product, index) => (
+              <div key={index} className="col d-flex">
                 <Link
-                  key={index}
                   to={`/product/${product.category}`}
-                  style={{ textDecoration: "none", color: "inherit" }}
+                  style={{ textDecoration: "none", color: "inherit", flex: 1 }}
                 >
-                  <div className="col">
-                    <div className="h-100">
-                      <div
+                  <div className="card h-100 d-flex flex-column">
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "250px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#f8f9fa",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <img
+                        src={product.productImage}
+                        alt={product.name}
                         style={{
-                          width: "250px",
-                          height: "250px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: "#f8f9fa",
-                          overflow: "hidden",
-                          margin: "0 auto",
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
                         }}
-                      >
-                        <img
-                          src={product.productImage}
-                          alt={product.name}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </div>
+                      />
                     </div>
-                    <div className="card-body text-center p-3">
+
+                    <div className="card-body text-center p-3 d-flex flex-column justify-content-between flex-grow-1">
                       <h5 className="card-title">{product.name}</h5>
                       <p className="card-text">{product.productDescription}</p>
-                      <button className="btn btn-info px-5">View More</button>
+                      <button className="btn btn-info mt-auto px-5">
+                        View More
+                      </button>
                     </div>
                   </div>
                 </Link>
-              ))}
-            </div>
-          )}
-        </main>
-      </section>
-    </>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+    </section>
   );
 };
+
 export default ShoppingHome;
