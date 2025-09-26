@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import useShoppingCartContext from "../context/ShoppingCartContext";
 
 const ProductListing = () => {
@@ -12,9 +12,17 @@ const ProductListing = () => {
   const [isPriceTouched, setIsPriceTouched] = useState(false);
   const [primiumCheck, setPrimiumCheck] = useState(false);
   const { categoryName } = useParams();
-  const { addToCart, searchTerm } = useShoppingCartContext();
+
+  const { addToCart, searchTerm, MoveToWishlist } = useShoppingCartContext();
+
   const [message, setMessage] = useState(null);
+  const [wishlistMessage, setWishlistMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // For size popup
+  const [showSizePopup, setShowSizePopup] = useState(false);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const handleChange = (e) => {
     const value = e.target.value;
@@ -50,7 +58,6 @@ const ProductListing = () => {
       setFilteredProd(data);
       setAllProduct(data);
       setLoading(false);
-      // console.log(data);
     } catch (err) {
       console.log(err);
       setLoading(false);
@@ -59,6 +66,7 @@ const ProductListing = () => {
 
   useEffect(() => {
     fetchProductByCategory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -107,6 +115,20 @@ const ProductListing = () => {
     setIsPriceTouched(false);
     setPrimiumCheck(false);
     setFilteredProd(allProduct);
+  };
+
+  // Handle size popup confirm
+  const handleConfirmAddToCart = () => {
+    if (selectedProduct && selectedSize) {
+      addToCart({ ...selectedProduct, size: selectedSize, quantity: 1 });
+      setMessage(selectedProduct._id);
+      setTimeout(() => {
+        setMessage(null);
+      }, 2000);
+    }
+    setShowSizePopup(false);
+    setSelectedSize(null);
+    setSelectedProduct(null);
   };
 
   return (
@@ -217,12 +239,32 @@ const ProductListing = () => {
                 <p className="text-center fs-5">Loading Products.....</p>
               </div>
             )}
+
             {!loading && (
               <p>
                 <b>Showing All Products</b> (Showing {filteredProd.length}{" "}
                 products)
               </p>
             )}
+
+            {/* ✅ NO PRODUCTS FOUND MESSAGE */}
+            {!loading &&
+              filteredProd.length === 0 &&
+              (searchTerm.trim() !== "" ||
+                isPriceTouched ||
+                selectedRating !== null ||
+                selectedCategory.length > 0 ||
+                primiumCheck) && (
+                <div
+                  className="d-flex justify-content-center align-items-center"
+                  style={{ minHeight: "200px" }}
+                >
+                  <p className="text-center fs-5 text-danger">
+                    No products found for the selected filters.
+                  </p>
+                </div>
+              )}
+
             <div className="row row-cols-1 row-cols-md-2 g-4">
               {filteredProd.map((product) => (
                 <div
@@ -270,15 +312,37 @@ const ProductListing = () => {
                           <p className="text-secondary mb-2">50% off</p>
 
                           <button
-                            className="btn btn-primary px-4"
+                            className="btn btn-secondary px-4"
                             onClick={(e) => {
                               e.stopPropagation();
-                              addToCart(product);
-                              setMessage(product._id);
-                              setTimeout(() => {
-                                setMessage(null);
-                              }, 2000);
-                              // setTimeout(() => navigate("/cart"), 0);
+                              MoveToWishlist(product);
+                              setWishlistMessage(product._id);
+                              setTimeout(() => setWishlistMessage(null), 2000);
+                            }}
+                          >
+                            Add to Wishlist
+                          </button>
+                          {wishlistMessage === product._id && (
+                            <p className="text-success mt-2">
+                              Added to Wishlist
+                            </p>
+                          )}
+
+                          <button
+                            className="btn btn-primary px-4 mt-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (
+                                product.category === "men" ||
+                                product.category === "women"
+                              ) {
+                                setSelectedProduct(product);
+                                setShowSizePopup(true);
+                              } else {
+                                addToCart({ ...product, quantity: 1 });
+                                setMessage(product._id);
+                                setTimeout(() => setMessage(null), 2000);
+                              }
                             }}
                           >
                             Add to Cart
@@ -300,6 +364,68 @@ const ProductListing = () => {
           </div>
         </div>
       </div>
+
+      {/* SIZE POPUP */}
+      {showSizePopup && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "8px",
+              width: "300px",
+              textAlign: "center",
+            }}
+          >
+            <h5>Select Size</h5>
+            <div className="d-flex justify-content-around my-3">
+              {["S", "M", "L", "XL"].map((size) => (
+                <button
+                  key={size}
+                  className={`btn ${
+                    selectedSize === size
+                      ? "btn-primary"
+                      : "btn-outline-primary"
+                  }`}
+                  onClick={() => setSelectedSize(size)}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+            <button
+              className="btn btn-success w-100"
+              disabled={!selectedSize}
+              onClick={handleConfirmAddToCart}
+            >
+              Confirm
+            </button>
+            <button
+              className="btn btn-danger w-100 mt-2"
+              onClick={() => {
+                setShowSizePopup(false);
+                setSelectedProduct(null);
+                setSelectedSize(null);
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
