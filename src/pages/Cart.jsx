@@ -10,6 +10,7 @@ const Cart = () => {
     checkOutPageAddress,
     addresses,
     addAddress,
+    addToCart,
   } = useShoppingCartContext();
 
   const [wishListAdded, setWishListAdded] = useState(false);
@@ -36,7 +37,6 @@ const Cart = () => {
     }
 
     const finalAddress = selectedAddress || newAddress;
-
     if (newAddress) addAddress(newAddress);
 
     const orderWithAddress = savedProducts.map((item) => ({
@@ -46,30 +46,47 @@ const Cart = () => {
 
     checkOutPageAddress(orderWithAddress);
 
-    // Empty the cart
     savedProducts.forEach((item) => removeCart(item));
 
     showToast("Order placed successfully!");
     setOrderPopup(false);
-
-    // Navigate to checkout page
     navigate("/checkout");
+  };
+
+  const increaseQty = (product) => {
+    addToCart({
+      ...product,
+      quantity: 1,
+      price: product.price / product.quantity,
+    });
+  };
+
+  const decreaseQty = (product) => {
+    if (product.quantity > 1) {
+      const unitPrice = product.price / product.quantity;
+      const updatedProduct = {
+        ...product,
+        quantity: -1,
+        price: -unitPrice,
+      };
+      addToCart(updatedProduct);
+    } else {
+      removeCart(product);
+    }
   };
 
   return (
     <main className="bg-body-tertiary" style={{ minHeight: "100vh" }}>
+      {/* ✅ Toast message (success / errors) */}
       {toastMessage && (
         <div
+          className="toast show position-fixed top-50 start-50 translate-middle"
           style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            backgroundColor: "#28a745",
+            backgroundColor: "#333",
             color: "#fff",
             padding: "10px 20px",
             borderRadius: "8px",
             zIndex: 9999,
-            boxShadow: "0px 2px 6px rgba(0,0,0,0.3)",
           }}
         >
           {toastMessage}
@@ -78,13 +95,27 @@ const Cart = () => {
 
       <section className="py-4">
         <div className="container">
-          <p className="text-center">
-            {savedProducts.length > 0 ? (
+          {/* ✅ Centered toast for empty cart */}
+          {savedProducts.length === 0 && (
+            <div
+              className="toast show position-fixed top-50 start-50 translate-middle"
+              style={{
+                backgroundColor: "#dc3545",
+                color: "#fff",
+                padding: "15px 30px",
+                borderRadius: "8px",
+                zIndex: 9999,
+              }}
+            >
+              No Items In the Cart
+            </div>
+          )}
+
+          {savedProducts.length > 0 && (
+            <p className="text-center">
               <b>My Cart (Showing {savedProducts.length} products)</b>
-            ) : (
-              <p className="fs-4 py-5 text-danger">No Items In the cart</p>
-            )}
-          </p>
+            </p>
+          )}
 
           <div className="row">
             <div className="col-md-8">
@@ -122,6 +153,13 @@ const Cart = () => {
                         <div className="col-md-6 d-flex flex-column">
                           <div className="card-body d-flex flex-column justify-content-between h-100">
                             <h5 className="card-title mb-0">{cart.name}</h5>
+
+                            {cart.size && (
+                              <p className="text-muted mb-1">
+                                Size: <b>{cart.size}</b>
+                              </p>
+                            )}
+
                             <p className="card-text mb-1">
                               <b>₹{cart.price}</b>{" "}
                               <span className="text-muted text-decoration-line-through">
@@ -129,6 +167,22 @@ const Cart = () => {
                               </span>
                             </p>
                             <p className="text-secondary mb-0">50% off</p>
+
+                            <div className="d-flex align-items-center my-2">
+                              <button
+                                className="btn btn-outline-secondary btn-sm"
+                                onClick={() => decreaseQty(cart)}
+                              >
+                                -
+                              </button>
+                              <span className="mx-3">{cart.quantity}</span>
+                              <button
+                                className="btn btn-outline-secondary btn-sm"
+                                onClick={() => increaseQty(cart)}
+                              >
+                                +
+                              </button>
+                            </div>
 
                             <button
                               className="btn btn-secondary px-1 w-100 mb-2"
@@ -146,8 +200,8 @@ const Cart = () => {
                               }}
                             >
                               {messageId === cart._id
-                                ? "SuccessFully added"
-                                : "Move to wishlist"}
+                                ? "Successfully Added"
+                                : "Move to Wishlist"}
                             </button>
                           </div>
                         </div>
