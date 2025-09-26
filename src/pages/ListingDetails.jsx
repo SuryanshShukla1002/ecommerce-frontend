@@ -66,7 +66,7 @@ const ListingDetails = () => {
       ...detailsData,
       quantity,
       price: detailsData.price * quantity,
-      size: selectedSize,
+      size: selectedSize, 
     });
     navigate("/cart");
   };
@@ -228,6 +228,7 @@ const ListingDetails = () => {
                           ...data,
                           quantity,
                           price: data.price * quantity,
+                          size: selectedSize || "M", 
                         })
                       }
                     >
