@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 const Cart = () => {
   const {
     savedProducts,
+    wislist,
     removeCart,
     MoveToWishlist,
     checkOutPageAddress,
@@ -13,26 +14,27 @@ const Cart = () => {
     addToCart,
   } = useShoppingCartContext();
 
-  const [wishListAdded, setWishListAdded] = useState(false);
   const [orderPopup, setOrderPopup] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState("");
   const [newAddress, setNewAddress] = useState("");
   const [messageId, setMessageId] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
+  const [toastColor, setToastColor] = useState("#333"); // ✅ default toast bg
 
   const navigate = useNavigate();
 
   const discount = 300;
   const deliveryCharges = 499;
 
-  const showToast = (msg) => {
+  const showToast = (msg, color = "#333") => {
     setToastMessage(msg);
+    setToastColor(color);
     setTimeout(() => setToastMessage(""), 3000);
   };
 
   const handlePlaceOrder = () => {
     if (!selectedAddress && !newAddress) {
-      showToast("Please select or enter an address");
+      showToast("Please select or enter an address", "#dc3545");
       return;
     }
 
@@ -48,7 +50,7 @@ const Cart = () => {
 
     savedProducts.forEach((item) => removeCart(item));
 
-    showToast("Order placed successfully!");
+    showToast("Order placed successfully!", "#28a745");
     setOrderPopup(false);
     navigate("/checkout");
   };
@@ -64,15 +66,30 @@ const Cart = () => {
   const decreaseQty = (product) => {
     if (product.quantity > 1) {
       const unitPrice = product.price / product.quantity;
-      const updatedProduct = {
+      addToCart({
         ...product,
         quantity: -1,
         price: -unitPrice,
-      };
-      addToCart(updatedProduct);
+      });
     } else {
       removeCart(product);
     }
+  };
+
+  const handleMoveToWishlist = (product) => {
+    const alreadyInWishlist = wislist.some(
+      (item) => item._id === product._id && item.size === product.size
+    );
+
+    if (alreadyInWishlist) {
+      showToast("Product already in wishlist!", "#dc3545"); // 🔴 red warning
+      return;
+    }
+
+    MoveToWishlist(product);
+    setMessageId(product._id);
+    showToast("Successfully added to wishlist!", "#28a745"); // 🟢 success
+    setTimeout(() => setMessageId(null), 2000);
   };
 
   return (
@@ -82,7 +99,7 @@ const Cart = () => {
         <div
           className="toast show position-fixed top-50 start-50 translate-middle"
           style={{
-            backgroundColor: "#333",
+            backgroundColor: toastColor,
             color: "#fff",
             padding: "10px 20px",
             borderRadius: "8px",
@@ -95,7 +112,6 @@ const Cart = () => {
 
       <section className="py-4">
         <div className="container">
-          {/* ✅ Centered toast for empty cart */}
           {savedProducts.length === 0 && (
             <div
               className="toast show position-fixed top-50 start-50 translate-middle"
@@ -192,12 +208,7 @@ const Cart = () => {
                             </button>
                             <button
                               className="btn btn-primary px-1 w-100"
-                              onClick={() => {
-                                MoveToWishlist(cart);
-                                setWishListAdded(true);
-                                setMessageId(cart._id);
-                                setTimeout(() => setMessageId(false), 2000);
-                              }}
+                              onClick={() => handleMoveToWishlist(cart)}
                             >
                               {messageId === cart._id
                                 ? "Successfully Added"

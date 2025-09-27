@@ -9,10 +9,9 @@ const ListingDetails = () => {
   const [dataItems, setDataItems] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
-  const [addedWishList, setAddedWishList] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  const { addToCart, MoveToWishlist } = useShoppingCartContext();
+  const { addToCart, wislist, MoveToWishlist } = useShoppingCartContext();
 
   const fetchUsrMoreLike = async () => {
     try {
@@ -62,13 +61,27 @@ const ListingDetails = () => {
       showToast("Please select a size first!");
       return;
     }
+
     addToCart({
       ...detailsData,
       quantity,
       price: detailsData.price * quantity,
-      size: selectedSize, 
+      size: selectedSize || "M",
     });
     navigate("/cart");
+  };
+
+  const handleAddToWishlist = (product) => {
+    // ✅ check if product already exists in wishlist
+    const alreadyInWishlist = wislist.some((item) => item._id === product._id);
+
+    if (alreadyInWishlist) {
+      showToast("Product is already in your wishlist!");
+      return;
+    }
+
+    MoveToWishlist({ ...product, size: selectedSize || "M", quantity });
+    showToast("Successfully added to wishlist!");
   };
 
   return (
@@ -109,19 +122,10 @@ const ListingDetails = () => {
               </button>
               <button
                 className="btn btn-info px-1 w-100"
-                onClick={() => {
-                  MoveToWishlist(detailsData);
-                  setAddedWishList(true);
-                  setTimeout(() => setAddedWishList(false), 2000);
-                }}
+                onClick={() => handleAddToWishlist(detailsData)}
               >
                 Add to Wishlist
               </button>
-              {addedWishList && (
-                <p className="text-success mt-3">
-                  Successfully added to the wishlist
-                </p>
-              )}
             </div>
 
             {/* RIGHT SIDE */}
@@ -228,7 +232,7 @@ const ListingDetails = () => {
                           ...data,
                           quantity,
                           price: data.price * quantity,
-                          size: selectedSize || "M", 
+                          size: selectedSize || "M",
                         })
                       }
                     >
