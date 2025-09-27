@@ -26,19 +26,18 @@ const ShoppingHome = () => {
 
       const data = await res.json();
 
-      // Replace categories
-      const updatedData = data.map((product) => {
-        if (product.category.toLowerCase().includes("mens casual shirt")) {
-          return { ...product, category: "Men" };
-        } else if (
-          product.category.toLowerCase().includes("women summer dress")
-        ) {
-          return { ...product, category: "Women" };
-        }
-        return product;
-      });
+      // const updatedData = data.map((product) => {
+      //   if (product.category.toLowerCase().includes("mens casual shirt")) {
+      //     return { ...product, category: "Men" };
+      //   } else if (
+      //     product.category.toLowerCase().includes("women summer dress")
+      //   ) {
+      //     return { ...product, category: "Women" };
+      //   }
+      //   return product;
+      // });
 
-      setProducts(updatedData);
+      setProducts(data);
       setLoading(false);
     } catch (err) {
       console.log(err);
@@ -102,7 +101,9 @@ const ShoppingHome = () => {
                     </div>
 
                     <div className="card-body text-center p-3 d-flex flex-column justify-content-between flex-grow-1">
-                      <h5 className="card-title">{product.name}</h5>
+                      <h5 className="card-title">
+                        {product.category.toUpperCase()}
+                      </h5>
                       <p className="card-text">{product.productDescription}</p>
                       <button className="btn btn-info mt-auto px-5">
                         View More
