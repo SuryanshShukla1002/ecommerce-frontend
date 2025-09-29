@@ -10,11 +10,18 @@ const Profile = () => {
     checkoutPage,
     removeOrder,
   } = useShoppingCartContext();
+
   const [newAddress, setNewAddress] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
   const orders = (checkoutPage || []).flat();
+
+  const showTemporaryToast = (msg) => {
+    setToastMessage(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
   const handleAddAddress = () => {
     if (newAddress.trim()) {
@@ -24,25 +31,16 @@ const Profile = () => {
     }
   };
 
-  const showTemporaryToast = (msg) => {
-    setToastMessage(msg);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
-  };
+  const handleOrderAction = (action) => {
+    if (orders.length === 0) return;
 
-  const handleOrderAction = (order, action) => {
-    const msg =
-      action === "place"
-        ? `Order placed successfully! Order ID: ${order._id || order.id}`
-        : `Order cancelled! Order ID: ${order._id || order.id}`;
-
-    setToastMessage(msg);
-    setShowToast(true);
-
-    setTimeout(() => {
-      setShowToast(false);
-      removeOrder(order);
-    }, 3000);
+    if (action === "cancel") {
+      orders.forEach((order) => removeOrder(order));
+      showTemporaryToast("Orders Cancelled Successfully");
+    } else if (action === "place") {
+      orders.forEach((order) => removeOrder(order));
+      showTemporaryToast("Orders Placed Successfully");
+    }
   };
 
   return (
@@ -51,15 +49,10 @@ const Profile = () => {
         <h1>User Profile</h1>
       </div>
 
-      {/* Profile Info & Addresses */}
+      {/* Addresses */}
       <div className="card mb-4">
         <div className="card-body">
-          <h5 className="card-title">Suryansh Shukla</h5>
-          <p className="card-text">suryansh334@gmail.com</p>
-
-          <h4 className="mt-4 mb-3">My Addresses</h4>
-
-          {/* Existing Addresses */}
+          <h4 className="mb-3">My Addresses</h4>
           {addresses.map((addr, index) => (
             <div key={index} className="d-flex align-items-center mb-2">
               <textarea
@@ -70,16 +63,13 @@ const Profile = () => {
               />
               <button
                 className="btn btn-danger text-nowrap"
-                style={{ minWidth: "120px", height: "50px" }}
-                title="Delete this address"
+                style={{ minWidth: "100px", height: "50px" }}
                 onClick={() => deleteAddress(index)}
               >
                 Delete
               </button>
             </div>
           ))}
-
-          {/* Add New Address */}
           <div className="d-flex align-items-center mt-3">
             <textarea
               className="form-control me-2"
@@ -90,53 +80,61 @@ const Profile = () => {
             />
             <button
               className="btn btn-primary"
-              style={{ minWidth: "120px", height: "50px" }}
-              title="Add new address"
+              style={{ minWidth: "100px", height: "50px" }}
               onClick={handleAddAddress}
             >
-              Add Address
+              Add
             </button>
           </div>
         </div>
       </div>
 
-      {/* Order Summary */}
+      {/* Orders */}
       <div className="card mb-4">
         <div className="card-body">
           <h4 className="mb-3">Order Summary</h4>
           {orders.length > 0 ? (
-            orders.map((order) => (
-              <div key={order._id || order.id} className="card mb-3 shadow-sm">
-                <div className="card-body">
-                  <h5 className="card-title">Order Name: {order.name}</h5>
-                  <h6 className="card-subtitle mb-2 text-muted">
-                    Order ID: {order._id || order.id}
-                  </h6>
-                  <p className="card-text">
-                    <strong>Price:</strong> ₹{order.price}
-                  </p>
-                  {order.address && (
+            <>
+              {orders.map((order) => (
+                <div
+                  key={order._id || order.id}
+                  className="card mb-3 shadow-sm"
+                >
+                  <div className="card-body">
+                    <h5 className="card-title">Order Name: {order.name}</h5>
+                    <h6 className="card-subtitle mb-2 text-muted">
+                      Order ID: {order._id || order.id}
+                    </h6>
                     <p className="card-text">
-                      <strong>Delivery Address:</strong> {order.address}
+                      <strong>Price:</strong> ₹{order.price}
                     </p>
-                  )}
-                  <div className="d-flex justify-content-end gap-2 mt-3">
-                    <button
-                      className="btn btn-outline-danger"
-                      onClick={() => handleOrderAction(order, "cancel")}
-                    >
-                      Cancel Order
-                    </button>
-                    <button
-                      className="btn btn-outline-success"
-                      onClick={() => handleOrderAction(order, "place")}
-                    >
-                      Place Order
-                    </button>
+                    {order.address && (
+                      <p className="card-text">
+                        <strong>Delivery Address:</strong> {order.address}
+                      </p>
+                    )}
                   </div>
                 </div>
+              ))}
+
+              {/* Buttons at the bottom */}
+              <div className="d-flex mt-3">
+                <button
+                  className="btn btn-outline-danger w-50 me-2"
+                  onClick={() => handleOrderAction("cancel")}
+                  disabled={orders.length === 0}
+                >
+                  Cancel Orders
+                </button>
+                <button
+                  className="btn btn-outline-success w-50 ms-2"
+                  onClick={() => handleOrderAction("place")}
+                  disabled={orders.length === 0}
+                >
+                  Place Orders
+                </button>
               </div>
-            ))
+            </>
           ) : (
             <div className="alert alert-info text-center">
               No orders found. Your order summary will appear here.
@@ -162,7 +160,6 @@ const Profile = () => {
               <button
                 type="button"
                 className="btn-close btn-close-white me-2 m-auto"
-                aria-label="Close"
                 onClick={() => setShowToast(false)}
               />
             </div>

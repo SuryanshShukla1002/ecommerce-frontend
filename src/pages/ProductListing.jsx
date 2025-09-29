@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useShoppingCartContext from "../context/ShoppingCartContext";
 
 const ProductListing = () => {
   const navigate = useNavigate();
+  const { categoryName } = useParams();
+  const { addToCart, searchTerm, wislist, MoveToWishlist } =
+    useShoppingCartContext();
+
   const [allProduct, setAllProduct] = useState([]);
   const [filteredProd, setFilteredProd] = useState([]);
   const [selectedCategory, setselectedCategory] = useState([]);
@@ -11,84 +15,76 @@ const ProductListing = () => {
   const [price, setPrice] = useState(1000);
   const [isPriceTouched, setIsPriceTouched] = useState(false);
   const [primiumCheck, setPrimiumCheck] = useState(false);
-  const { categoryName } = useParams();
-
-  const { addToCart, searchTerm, wislist, MoveToWishlist } =
-    useShoppingCartContext();
 
   const [message, setMessage] = useState(null);
-  const [toastMessage, setToastMessage] = useState(null); // For toast popup
+  const [toastMessage, setToastMessage] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [showSizePopup, setShowSizePopup] = useState(false);
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const handleChange = (e) => {
-    const value = e.target.value;
-    if (e.target.checked) {
-      setselectedCategory((prev) => [...prev, value]);
-    } else {
-      setselectedCategory((prev) => prev.filter((c) => c !== value));
-    }
-  };
-
-  const handleChangeForPremium = (e) => {
-    setPrimiumCheck(e.target.checked);
-  };
-
+  // fetch products
   const fetchProductByCategory = async () => {
     try {
       setLoading(true);
       const res = await fetch(
         `https://ecommerce-backend-five-chi.vercel.app/products/${categoryName}`,
-        { method: "GET", headers: { "Content-Type": "application/json" } }
+        { headers: { "Content-Type": "application/json" } }
       );
       if (!res.ok) {
-        console.error("Unable to fetch the data.");
         setFilteredProd([]);
         return;
       }
       const data = await res.json();
-      setFilteredProd(data);
       setAllProduct(data);
-      setLoading(false);
+      setFilteredProd(data);
     } catch (err) {
-      console.log(err);
+      console.error(err);
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchProductByCategory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [categoryName]);
 
+  // memoized category list to avoid recomputation in useEffect
+  const allCategories = useMemo(
+    () => Array.from(new Set(allProduct.map((p) => p.category))),
+    [allProduct]
+  );
+
+  // filter products
   useEffect(() => {
     let updated = [...allProduct];
 
-    if (searchTerm.trim() !== "") {
+    if (searchTerm.trim()) {
       updated = updated.filter((p) =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (isPriceTouched) {
-      updated = updated.filter((prices) => Number(prices.price) <= price);
+      updated = updated.filter((p) => Number(p.price) <= price);
     }
 
     if (selectedRating != null) {
-      updated = updated.filter((rate) => Number(rate.rating) >= selectedRating);
+      updated = updated.filter((p) => Number(p.rating) >= selectedRating);
     }
 
-    if (selectedCategory.length > 0) {
+    // category filter: only 1 category filter at a time
+    if (selectedCategory.length === 1) {
       updated = updated.filter((p) => selectedCategory.includes(p.category));
     }
 
-    if (primiumCheck) {
+    // both checkboxes (premium + category) → show empty
+    if (primiumCheck && selectedCategory.length > 0) {
+      updated = [];
+    } else if (primiumCheck) {
       updated = updated.filter(
-        (rateCategory) =>
-          Number(rateCategory.rating) > 3 && Number(rateCategory.rating) < 4
+        (p) => Number(p.rating) > 3 && Number(p.rating) < 4
       );
     }
 
@@ -119,8 +115,8 @@ const ProductListing = () => {
       setTimeout(() => setMessage(null), 2000);
     }
     setShowSizePopup(false);
-    setSelectedSize(null);
     setSelectedProduct(null);
+    setSelectedSize(null);
   };
 
   const handleAddToWishlist = (product) => {
@@ -133,16 +129,29 @@ const ProductListing = () => {
       setToastMessage("Added to Wishlist");
     }
 
-    setTimeout(() => setToastMessage(null), 2000); // auto-hide toast
+    setTimeout(() => setToastMessage(null), 2000);
+  };
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    if (e.target.checked) {
+      setselectedCategory((prev) => [...prev, value]);
+    } else {
+      setselectedCategory((prev) => prev.filter((c) => c !== value));
+    }
+  };
+
+  const handleChangeForPremium = (e) => {
+    setPrimiumCheck(e.target.checked);
   };
 
   return (
     <main className="container-fluid">
-      {/* LEFT FILTERS */}
       <div className="row">
+        {/* LEFT FILTERS */}
         <div className="col-md-3 bg-white p-3">
           <h2 className="mb-4">Filters</h2>
-          <br />
+
           <h3>Price</h3>
           <input
             type="range"
@@ -156,8 +165,8 @@ const ProductListing = () => {
               setIsPriceTouched(true);
             }}
           />
-          <span>{price && <p>₹ {price}</p>}</span>
-          <br />
+          <p>₹ {price}</p>
+
           <h3>Rating</h3>
           {[5, 4, 3].map((rate) => (
             <div key={rate}>
@@ -165,37 +174,40 @@ const ProductListing = () => {
                 <input
                   type="radio"
                   name="rating"
-                  onChange={() => setSelectedRating(rate)}
                   checked={selectedRating === rate}
+                  onChange={() => setSelectedRating(rate)}
                 />{" "}
                 {rate} Stars & above
               </label>
             </div>
           ))}
-          <br />
+
           <h3>Category</h3>
+          {allCategories.map((cat) => (
+            <div key={cat}>
+              <label>
+                <input
+                  type="checkbox"
+                  value={cat}
+                  checked={selectedCategory.includes(cat)}
+                  onChange={handleChange}
+                />{" "}
+                Casual
+              </label>
+            </div>
+          ))}
+
           <label>
             <input
               type="checkbox"
-              value="men"
-              onChange={handleChange}
-              checked={selectedCategory.includes("men")}
-            />{" "}
-            Casual
-          </label>
-          <br />
-          <label>
-            <input
-              type="checkbox"
-              value="premium-men"
               checked={primiumCheck}
               onChange={handleChangeForPremium}
+              className="mt-2"
             />{" "}
             Premium
           </label>
-          <br />
-          <br />
-          <div className="text-center">
+
+          <div className="text-center mt-3">
             <button
               className="btn btn-danger w-100"
               onClick={handleRemoveFilters}
@@ -217,13 +229,6 @@ const ProductListing = () => {
               </div>
             )}
 
-            {!loading && (
-              <p>
-                <b>Showing All Products</b> (Showing {filteredProd.length}{" "}
-                products)
-              </p>
-            )}
-
             {!loading && filteredProd.length === 0 && (
               <div
                 className="d-flex justify-content-center align-items-center"
@@ -235,78 +240,87 @@ const ProductListing = () => {
               </div>
             )}
 
-            <div className="row row-cols-1 row-cols-md-2 g-4">
-              {filteredProd.map((product) => (
-                <div
-                  key={product._id}
-                  className="col"
-                  style={{ cursor: "pointer" }}
-                >
-                  <div
-                    className="card mb-3 h-100"
-                    onClick={() => navigate(`/productDetails/${product._id}`)}
-                  >
-                    <div className="row g-0 h-100">
-                      <div className="col-md-6 d-flex align-items-center">
-                        <img
-                          src={product.productImage}
-                          className="img-fluid rounded-start"
-                          alt={product.name}
-                          style={{ maxHeight: "200px", objectFit: "cover" }}
-                        />
-                      </div>
-                      <div className="col-md-6 d-flex flex-column">
-                        <div className="card-body d-flex flex-column justify-content-between h-100">
-                          <h5 className="card-title mb-0">{product.name}</h5>
-                          <p className="card-text">
-                            <b>₹{product.price}</b>{" "}
-                            <span className="text-muted text-decoration-line-through">
-                              ₹3999
-                            </span>
-                          </p>
-                          <p className="text-secondary mb-2">50% off</p>
+            {!loading && filteredProd.length > 0 && (
+              <>
+                <p>
+                  <b>Showing All Products</b> (Showing {filteredProd.length}{" "}
+                  products)
+                </p>
+                <div className="row row-cols-1 row-cols-md-2 g-4">
+                  {filteredProd.map((product) => (
+                    <div key={product._id} className="col">
+                      <div
+                        className="card mb-3 h-100"
+                        onClick={() =>
+                          navigate(`/productDetails/${product._id}`)
+                        }
+                      >
+                        <div className="row g-0 h-100">
+                          <div className="col-md-6 col-12 d-flex justify-content-center align-items-center">
+                            <img
+                              src={product.productImage}
+                              alt={product.name}
+                              className="img-fluid rounded-start"
+                              style={{ maxHeight: "200px", objectFit: "cover" }}
+                            />
+                          </div>
+                          <div className="col-md-6 d-flex flex-column">
+                            <div className="card-body d-flex flex-column justify-content-between h-100">
+                              <h5 className="card-title mb-0">
+                                {product.name}
+                              </h5>
+                              <p className="card-text">
+                                <b>₹{product.price}</b>{" "}
+                                <span className="text-muted text-decoration-line-through">
+                                  ₹3999
+                                </span>
+                              </p>
+                              <p className="text-secondary mb-2">50% off</p>
 
-                          <button
-                            className="btn btn-secondary px-4"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddToWishlist(product);
-                            }}
-                          >
-                            Add to Wishlist
-                          </button>
+                              <button
+                                className="btn btn-secondary px-4"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddToWishlist(product);
+                                }}
+                              >
+                                Add to Wishlist
+                              </button>
 
-                          <button
-                            className="btn btn-primary px-4 mt-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (
-                                product.category === "men" ||
-                                product.category === "women"
-                              ) {
-                                setSelectedProduct(product);
-                                setShowSizePopup(true);
-                              } else {
-                                addToCart({ ...product, quantity: 1 });
-                                setMessage(product._id);
-                                setTimeout(() => setMessage(null), 2000);
-                              }
-                            }}
-                          >
-                            Add to Cart
-                          </button>
-                          {message === product._id && (
-                            <p className="text-success mt-2">
-                              Successfully added to cart
-                            </p>
-                          )}
+                              <button
+                                className="btn btn-primary px-4 mt-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (
+                                    product.category === "men" ||
+                                    product.category === "women"
+                                  ) {
+                                    setSelectedProduct(product);
+                                    setShowSizePopup(true);
+                                  } else {
+                                    addToCart({ ...product, quantity: 1 });
+                                    setMessage(product._id);
+                                    setTimeout(() => setMessage(null), 2000);
+                                  }
+                                }}
+                              >
+                                Add to Cart
+                              </button>
+
+                              {message === product._id && (
+                                <p className="text-success mt-2">
+                                  Successfully added to cart
+                                </p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -373,7 +387,7 @@ const ProductListing = () => {
         </div>
       )}
 
-      {/* TOAST MESSAGE */}
+      {/* TOAST */}
       {toastMessage && (
         <div
           style={{
