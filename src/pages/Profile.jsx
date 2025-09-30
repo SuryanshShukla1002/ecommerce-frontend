@@ -8,14 +8,15 @@ const Profile = () => {
     updateAddress,
     deleteAddress,
     checkoutPage,
-    removeOrder,
+    placedOrders,
   } = useShoppingCartContext();
 
   const [newAddress, setNewAddress] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  const orders = (checkoutPage || []).flat();
+  // ✅ merge checkoutPage + placedOrders
+  const orders = [...(checkoutPage || []), ...(placedOrders || [])].flat();
 
   const showTemporaryToast = (msg) => {
     setToastMessage(msg);
@@ -28,18 +29,6 @@ const Profile = () => {
       addAddress(newAddress);
       setNewAddress("");
       showTemporaryToast("Address added successfully!");
-    }
-  };
-
-  const handleOrderAction = (action) => {
-    if (orders.length === 0) return;
-
-    if (action === "cancel") {
-      orders.forEach((order) => removeOrder(order));
-      showTemporaryToast("Orders Cancelled Successfully");
-    } else if (action === "place") {
-      orders.forEach((order) => removeOrder(order));
-      showTemporaryToast("Orders Placed Successfully");
     }
   };
 
@@ -116,24 +105,6 @@ const Profile = () => {
                   </div>
                 </div>
               ))}
-
-              {/* Buttons at the bottom */}
-              <div className="d-flex mt-3">
-                <button
-                  className="btn btn-outline-danger w-50 me-2"
-                  onClick={() => handleOrderAction("cancel")}
-                  disabled={orders.length === 0}
-                >
-                  Cancel Orders
-                </button>
-                <button
-                  className="btn btn-outline-success w-50 ms-2"
-                  onClick={() => handleOrderAction("place")}
-                  disabled={orders.length === 0}
-                >
-                  Place Orders
-                </button>
-              </div>
             </>
           ) : (
             <div className="alert alert-info text-center">

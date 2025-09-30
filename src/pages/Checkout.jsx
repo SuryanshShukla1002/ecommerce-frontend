@@ -2,25 +2,26 @@ import { useState } from "react";
 import useShoppingCartContext from "../context/ShoppingCartContext";
 
 const Checkout = () => {
-  const { checkoutPage, removeOrder } = useShoppingCartContext();
+  const { checkoutPage, removeOrder, addPlacedOrder } =
+    useShoppingCartContext();
   const orders = (checkoutPage || []).flat();
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
   const handleAction = (order, action) => {
-    const msg =
-      action === "place"
-        ? `Order placed successfully! Order ID: ${order._id || order.id}`
-        : `Order cancelled! Order ID: ${order._id || order.id}`;
+    if (action === "place") {
+      addPlacedOrder(order); // ✅ move to placed orders
+      setToastMessage(
+        `Order placed successfully! Order ID: ${order._id || order.id}`
+      );
+    } else {
+      removeOrder(order);
+      setToastMessage(`Order cancelled! Order ID: ${order._id || order.id}`);
+    }
 
-    setToastMessage(msg);
     setShowToast(true);
-
-    setTimeout(() => {
-      setShowToast(false);
-      removeOrder(order); // remove order for both place & cancel
-    }, 3000);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   return (

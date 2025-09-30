@@ -28,9 +28,19 @@ export const ShoppingContextProvider = ({ children }) => {
     return storedOrderSummary ? JSON.parse(storedOrderSummary) : [];
   });
 
+  // ✅ new state for placed orders
+  const [placedOrders, setPlacedOrders] = useState(() => {
+    const storedPlaced = localStorage.getItem("placedOrders");
+    return storedPlaced ? JSON.parse(storedPlaced) : [];
+  });
+
   useEffect(() => {
     localStorage.setItem("checkoutPage", JSON.stringify(checkoutPage));
   }, [checkoutPage]);
+
+  useEffect(() => {
+    localStorage.setItem("placedOrders", JSON.stringify(placedOrders));
+  }, [placedOrders]);
 
   useEffect(() => {
     localStorage.setItem("userAddresses", JSON.stringify(addresses));
@@ -44,7 +54,6 @@ export const ShoppingContextProvider = ({ children }) => {
     localStorage.setItem("wislist", JSON.stringify(wislist));
   }, [wislist]);
 
-  // UPDATED addToCart
   const addToCart = (product) => {
     setSavedProducts((prev) => {
       const existingIndex = prev.findIndex(
@@ -121,6 +130,12 @@ export const ShoppingContextProvider = ({ children }) => {
     );
   };
 
+  // ✅ add placed order
+  const addPlacedOrder = (order) => {
+    setPlacedOrders((prev) => [...prev, order]);
+    removeOrder(order);
+  };
+
   return (
     <ShoppingCartContext.Provider
       value={{
@@ -128,6 +143,7 @@ export const ShoppingContextProvider = ({ children }) => {
         wislist,
         searchTerm,
         checkoutPage,
+        placedOrders, // ✅
         addresses,
         updateAddress,
         deleteAddress,
@@ -140,6 +156,7 @@ export const ShoppingContextProvider = ({ children }) => {
         removeWishListCard,
         checkOutPageAddress,
         removeOrder,
+        addPlacedOrder, // ✅
       }}
     >
       {children}
