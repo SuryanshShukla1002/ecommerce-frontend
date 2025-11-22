@@ -1,6 +1,6 @@
 // import './App.css'
 
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import ShoppingHome from "./pages/ShoppingHome";
 import ProductListing from "./pages/ProductListing";
@@ -10,14 +10,22 @@ import Cart from "./pages/Cart";
 import { ShoppingContextProvider } from "./context/ShoppingCartContext";
 import Profile from "./pages/Profile";
 import Checkout from "./pages/Checkout";
+import Signup from "./components/Signup";
+import Login from "./components/Login";
 
 function App() {
+  const location = useLocation();
+
   return (
     <>
       <ShoppingContextProvider>
-        <Navbar />
+        {location.pathname !== "/" && location.pathname !== "/login" && (
+          <Navbar />
+        )}
         <Routes>
-          <Route path="/" element={<ShoppingHome />} />
+          <Route path="/" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/home" element={<ShoppingHome />} />
           <Route path="/product/:categoryName" element={<ProductListing />} />
           <Route
             path="/productDetails/:productId"
