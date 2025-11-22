@@ -11,7 +11,7 @@ const Checkout = () => {
 
   const handleAction = (order, action) => {
     if (action === "place") {
-      addPlacedOrder(order); // ✅ move to placed orders
+      addPlacedOrder(order); 
       setToastMessage(
         `Order placed successfully! Order ID: ${order._id || order.id}`
       );

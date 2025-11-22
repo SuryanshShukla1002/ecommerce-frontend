@@ -26,17 +26,6 @@ const ShoppingHome = () => {
 
       const data = await res.json();
 
-      // const updatedData = data.map((product) => {
-      //   if (product.category.toLowerCase().includes("mens casual shirt")) {
-      //     return { ...product, category: "Men" };
-      //   } else if (
-      //     product.category.toLowerCase().includes("women summer dress")
-      //   ) {
-      //     return { ...product, category: "Women" };
-      //   }
-      //   return product;
-      // });
-
       setProducts(data);
       setLoading(false);
     } catch (err) {

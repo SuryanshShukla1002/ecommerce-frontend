@@ -24,7 +24,6 @@ const ProductListing = () => {
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // fetch products
   const fetchProductByCategory = async () => {
     try {
       setLoading(true);
@@ -50,13 +49,11 @@ const ProductListing = () => {
     fetchProductByCategory();
   }, [categoryName]);
 
-  // memoized category list to avoid recomputation in useEffect
   const allCategories = useMemo(
     () => Array.from(new Set(allProduct.map((p) => p.category))),
     [allProduct]
   );
 
-  // filter products
   useEffect(() => {
     let updated = [...allProduct];
 
@@ -74,12 +71,10 @@ const ProductListing = () => {
       updated = updated.filter((p) => Number(p.rating) >= selectedRating);
     }
 
-    // category filter: only 1 category filter at a time
     if (selectedCategory.length === 1) {
       updated = updated.filter((p) => selectedCategory.includes(p.category));
     }
 
-    // both checkboxes (premium + category) → show empty
     if (primiumCheck && selectedCategory.length > 0) {
       updated = [];
     } else if (primiumCheck) {
@@ -148,7 +143,6 @@ const ProductListing = () => {
   return (
     <main className="container-fluid">
       <div className="row">
-        {/* LEFT FILTERS */}
         <div className="col-md-3 bg-white p-3">
           <h2 className="mb-4">Filters</h2>
 
@@ -217,7 +211,6 @@ const ProductListing = () => {
           </div>
         </div>
 
-        {/* RIGHT PRODUCTS */}
         <div className="col-md-9 bg-body-tertiary">
           <div className="container py-4">
             {loading && (
@@ -325,7 +318,6 @@ const ProductListing = () => {
         </div>
       </div>
 
-      {/* SIZE POPUP */}
       {showSizePopup && (
         <div
           style={{
@@ -387,7 +379,6 @@ const ProductListing = () => {
         </div>
       )}
 
-      {/* TOAST */}
       {toastMessage && (
         <div
           style={{

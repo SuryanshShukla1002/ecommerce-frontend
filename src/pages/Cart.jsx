@@ -19,7 +19,7 @@ const Cart = () => {
   const [newAddress, setNewAddress] = useState("");
   const [messageId, setMessageId] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
-  const [toastColor, setToastColor] = useState("#333"); // ✅ default toast bg
+  const [toastColor, setToastColor] = useState("#333");
 
   const navigate = useNavigate();
 
@@ -82,19 +82,18 @@ const Cart = () => {
     );
 
     if (alreadyInWishlist) {
-      showToast("Product already in wishlist!", "#dc3545"); // 🔴 red warning
+      showToast("Product already in wishlist!", "#dc3545");
       return;
     }
 
     MoveToWishlist(product);
     setMessageId(product._id);
-    showToast("Successfully added to wishlist!", "#28a745"); // 🟢 success
+    showToast("Successfully added to wishlist!", "#28a745");
     setTimeout(() => setMessageId(null), 2000);
   };
 
   return (
     <main className="bg-body-tertiary" style={{ minHeight: "100vh" }}>
-      {/* ✅ Toast message (success / errors) */}
       {toastMessage && (
         <div
           className="toast show position-fixed top-50 start-50 translate-middle"

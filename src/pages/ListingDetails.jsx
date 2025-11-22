@@ -72,7 +72,6 @@ const ListingDetails = () => {
   };
 
   const handleAddToWishlist = (product) => {
-    // ✅ check if product already exists in wishlist
     const alreadyInWishlist = wislist.some((item) => item._id === product._id);
 
     if (alreadyInWishlist) {
@@ -107,7 +106,6 @@ const ListingDetails = () => {
       <main className="container mt-4">
         {detailsData && (
           <div className="row bg-body-tertiary">
-            {/* LEFT SIDE */}
             <div className="col-md-4 p-3 text-center">
               <img
                 src={detailsData.productImage}
@@ -128,7 +126,6 @@ const ListingDetails = () => {
               </button>
             </div>
 
-            {/* RIGHT SIDE */}
             <div className="col-md-8 p-3">
               <h3>
                 {detailsData.name} {detailsData.productDescription}

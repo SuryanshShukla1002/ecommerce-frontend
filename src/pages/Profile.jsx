@@ -15,7 +15,6 @@ const Profile = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  // ✅ merge checkoutPage + placedOrders
   const orders = [...(checkoutPage || []), ...(placedOrders || [])].flat();
 
   const showTemporaryToast = (msg) => {
@@ -38,7 +37,6 @@ const Profile = () => {
         <h1>User Profile</h1>
       </div>
 
-      {/* Addresses */}
       <div className="card mb-4">
         <div className="card-body">
           <h4 className="mb-3">My Addresses</h4>
@@ -78,7 +76,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Orders */}
       <div className="card mb-4">
         <div className="card-body">
           <h4 className="mb-3">Order Summary</h4>
@@ -114,7 +111,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Toast */}
       {showToast && (
         <div
           className="position-fixed top-0 end-0 p-3"
